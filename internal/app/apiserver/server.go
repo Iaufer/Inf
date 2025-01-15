@@ -3,6 +3,7 @@ package apiserver
 import (
 	"Inf/internal/app/apiserver/store"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -38,7 +39,7 @@ func (s *server) handleSend() http.HandlerFunc {
 		var req struct {
 			From   string `json:"from"`
 			To     string `json:"to"`
-			Amount string `json:"amount"`
+			Amount int    `json:"amount"`
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -46,7 +47,18 @@ func (s *server) handleSend() http.HandlerFunc {
 			return
 		}
 
-		// if err := s.store
+		fmt.Println(req)
+
+		ctx := r.Context()
+
+		fromWallet, err := s.store.Wallet().FindByAddress(ctx, req.From)
+
+		if err != nil {
+			return
+			// return fmt.Errorf("sender wallet not found")
+		}
+
+		fmt.Println("fromWallet: ", fromWallet.Address, "переслать: ", req.Amount, "toWallet: ", req.To)
 
 	}
 }
