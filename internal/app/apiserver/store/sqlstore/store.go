@@ -1,17 +1,16 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	_ "github.com/lib/pq" //...
+	"gorm.io/gorm"
 )
 
 type Store struct {
-	db *sql.DB
+	db *gorm.DB
 	// userRepository  *UserRepository
 }
 
-func New(db *sql.DB) *Store {
+func New(db *gorm.DB) *Store {
 	return &Store{
 		db: db,
 	}

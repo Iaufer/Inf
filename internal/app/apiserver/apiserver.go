@@ -2,27 +2,26 @@ package apiserver
 
 import (
 	"Inf/internal/app/apiserver/store/sqlstore"
-	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func Start(config *Config) error {
 	db, err := newDB(config.DatabaseURL)
 
 	if err != nil {
-		return err // сделать ошибку более информативной
+		return fmt.Errorf("failed to initialize database: %v", err)
 	}
-
-	defer db.Close()
 
 	if err := migrations(db); err != nil {
 		return fmt.Errorf("failed to apply migrations: %v", err)
 	} else {
-		fmt.Println("Migrations were completed successfully (Note: if they were completed earlier, they will simply be ignored because they were completed earlier)")
+		fmt.Println("Migrations applied successfully!")
 	}
 
 	store := sqlstore.New(db)
@@ -32,22 +31,18 @@ func Start(config *Config) error {
 	return http.ListenAndServe(config.BindAddr, srv)
 }
 
-func newDB(databaseURL string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", databaseURL)
+func newDB(databaseURl string) (*gorm.DB, error) {
+	db, err := gorm.Open(postgres.Open(databaseURl), &gorm.Config{})
 
 	if err != nil {
-		return nil, err // inf
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 
 	return db, nil
 }
 
-func migrations(db *sql.DB) error {
-	files, err := os.ReadDir("../../migrations")
+func migrations(db *gorm.DB) error {
+	files, err := os.ReadDir("migrations")
 
 	fmt.Println(files)
 
@@ -63,27 +58,16 @@ func migrations(db *sql.DB) error {
 		if file.IsDir() { //skip if not is files
 			continue
 		}
-		filePath := fmt.Sprintf("../../migrations/%s", file.Name())
+		filePath := fmt.Sprintf("migrations/%s", file.Name())
 
-		if err := migration(db, filePath); err != nil {
+		cont, err := os.ReadFile(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to read migration file %s: %v", filePath, err)
+		}
+
+		if err := db.Exec(string(cont)).Error; err != nil {
 			return fmt.Errorf("failed to apply migration %s: %v", file.Name(), err)
 		}
-	}
-
-	return nil
-}
-
-func migration(db *sql.DB, filePath string) error {
-	content, err := ioutil.ReadFile(filePath)
-
-	if err != nil {
-		return fmt.Errorf("failed to read migration file %s: %v", filePath, err)
-	}
-
-	_, err = db.Exec(string(content))
-
-	if err != nil {
-		return fmt.Errorf("failed to apply migration from file %s: %v", filePath, err)
 	}
 
 	return nil

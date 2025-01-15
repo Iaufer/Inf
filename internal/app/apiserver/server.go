@@ -23,12 +23,17 @@ func newServer(store store.Store) *server {
 	return s
 }
 
-func (s *server) configureRouter() {
-	s.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("<html><body><h1>Добро пожаловать на главную страницу!</h1></body></html>"))
-	})
-}
-
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
+}
+
+func (s *server) configureRouter() {
+	s.router.HandleFunc("/api/send", s.handleSend()).Methods("POST")
+
+}
+
+func (s *server) handleSend() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
 }
