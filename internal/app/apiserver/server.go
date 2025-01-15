@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"Inf/internal/app/apiserver/store"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -34,6 +35,18 @@ func (s *server) configureRouter() {
 
 func (s *server) handleSend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			From   string `json:"from"`
+			To     string `json:"to"`
+			Amount string `json:"amount"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		// if err := s.store
 
 	}
 }

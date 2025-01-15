@@ -2,10 +2,14 @@ package apiserver
 
 import (
 	"Inf/internal/app/apiserver/store/sqlstore"
+	"Inf/internal/app/model"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"os"
 	"sort"
+
+	"crypto/rand"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,6 +26,10 @@ func Start(config *Config) error {
 		return fmt.Errorf("failed to apply migrations: %v", err)
 	} else {
 		fmt.Println("Migrations applied successfully!")
+	}
+
+	if err := initializeWallets(db); err != nil {
+		return fmt.Errorf("failed to init wallets: %v", err)
 	}
 
 	store := sqlstore.New(db)
@@ -44,7 +52,7 @@ func newDB(databaseURl string) (*gorm.DB, error) {
 func migrations(db *gorm.DB) error {
 	files, err := os.ReadDir("migrations")
 
-	fmt.Println(files)
+	// fmt.Println(files)
 
 	if err != nil {
 		return fmt.Errorf("failed to read migrations folder: %v", err)
@@ -71,4 +79,49 @@ func migrations(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func initializeWallets(db *gorm.DB) error {
+	var count int64
+
+	if err := db.Model(&model.Wallet{}).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to check wallets in db: %v", err)
+	}
+
+	if count >= 10 {
+		return nil
+	}
+
+	for i := 0; i < 10; i++ {
+		addr, err := generateRandAddr()
+
+		if err != nil {
+			return fmt.Errorf("faield to generate addr: %v", err)
+		}
+
+		wallet := &model.Wallet{
+			Address: addr,
+			Balance: 100,
+		}
+
+		fmt.Println(wallet)
+
+		if err := db.Create(wallet).Error; err != nil {
+			return fmt.Errorf("failed to create wallet: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func generateRandAddr() (string, error) {
+	bytes := make([]byte, 32)
+
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %v", err)
+	}
+
+	addr := hex.EncodeToString(bytes)
+
+	return addr, nil
 }
