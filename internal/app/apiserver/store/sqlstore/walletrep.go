@@ -21,5 +21,8 @@ func (r *WalletRepository) FindByAddress(ctx context.Context, address string) (*
 }
 
 func (r *WalletRepository) Update(ctx context.Context, wallet *model.Wallet) error {
-	return nil
+	return r.store.db.WithContext(ctx).
+		Model(wallet).
+		Select("balance").
+		Updates(map[string]interface{}{"Balance": wallet.Balance}).Error
 }

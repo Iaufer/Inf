@@ -51,6 +51,8 @@ func (s *server) handleSend() http.HandlerFunc {
 
 		ctx := r.Context()
 
+		// err := s.store.Transaction()
+
 		fromWallet, err := s.store.Wallet().FindByAddress(ctx, req.From)
 
 		if err != nil {
@@ -58,7 +60,35 @@ func (s *server) handleSend() http.HandlerFunc {
 			// return fmt.Errorf("sender wallet not found")
 		}
 
-		fmt.Println("fromWallet: ", fromWallet.Address, "переслать: ", req.Amount, "toWallet: ", req.To)
+		toWallet, err := s.store.Wallet().FindByAddress(ctx, req.To)
+
+		if err != nil {
+			// return fmt.Errorf("sender wallet not found")
+			return
+		}
+
+		if fromWallet.Balance < float64(req.Amount) {
+			fmt.Println("insufficient funds")
+			return
+		}
+
+		fromWallet.Balance -= float64(req.Amount)
+		toWallet.Balance += float64(req.Amount)
+
+		if err := s.store.Wallet().Update(ctx, fromWallet); err != nil {
+			fmt.Println("Ошибка в отправителе кошелька")
+			return
+		}
+
+		if err := s.store.Wallet().Update(ctx, toWallet); err != nil {
+			fmt.Println("Ошибка в получателе кошелька")
+			return
+		}
+
+		fmt.Println("fromWallet: ", fromWallet.Balance)
+		fmt.Println("toWallet: ", toWallet.Balance)
+
+		// fmt.Println("fromWallet: ", fromWallet.Address, "переслать: ", req.Amount, "toWallet: ", toWallet.Address)
 
 	}
 }
