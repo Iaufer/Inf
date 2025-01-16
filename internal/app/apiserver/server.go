@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 type server struct {
@@ -51,44 +52,52 @@ func (s *server) handleSend() http.HandlerFunc {
 
 		ctx := r.Context()
 
-		// err := s.store.Transaction()
+		err := s.store.Transaction().DB().Transaction(func(tx *gorm.DB) error {
+			fromWallet, err := s.store.Wallet().FindByAddress(ctx, req.From)
 
-		fromWallet, err := s.store.Wallet().FindByAddress(ctx, req.From)
+			if err != nil {
+				return err
+				// return fmt.Errorf("sender wallet not found")
+			}
+
+			toWallet, err := s.store.Wallet().FindByAddress(ctx, req.To)
+
+			if err != nil {
+				// return fmt.Errorf("sender wallet not found")
+				return err
+			}
+
+			if fromWallet.Balance < float64(req.Amount) {
+				fmt.Println("insufficient funds")
+				return err
+			}
+
+			fromWallet.Balance -= float64(req.Amount)
+			toWallet.Balance += float64(req.Amount)
+
+			if err := s.store.Wallet().Update(ctx, fromWallet); err != nil {
+				fmt.Println("Ошибка в отправителе кошелька")
+				return err
+			}
+
+			if err := s.store.Wallet().Update(ctx, toWallet); err != nil {
+				fmt.Println("Ошибка в получателе кошелька")
+				return err
+			}
+
+			fmt.Println("fromWallet: ", fromWallet.Balance)
+			fmt.Println("toWallet: ", toWallet.Balance)
+
+			// fmt.Println("fromWallet: ", fromWallet.Address, "переслать: ", req.Amount, "toWallet: ", toWallet.Address)
+			return nil
+
+		})
 
 		if err != nil {
-			return
-			// return fmt.Errorf("sender wallet not found")
-		}
-
-		toWallet, err := s.store.Wallet().FindByAddress(ctx, req.To)
-
-		if err != nil {
-			// return fmt.Errorf("sender wallet not found")
+			fmt.Println("Ошибка с транзакциями")
+			// http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		if fromWallet.Balance < float64(req.Amount) {
-			fmt.Println("insufficient funds")
-			return
-		}
-
-		fromWallet.Balance -= float64(req.Amount)
-		toWallet.Balance += float64(req.Amount)
-
-		if err := s.store.Wallet().Update(ctx, fromWallet); err != nil {
-			fmt.Println("Ошибка в отправителе кошелька")
-			return
-		}
-
-		if err := s.store.Wallet().Update(ctx, toWallet); err != nil {
-			fmt.Println("Ошибка в получателе кошелька")
-			return
-		}
-
-		fmt.Println("fromWallet: ", fromWallet.Balance)
-		fmt.Println("toWallet: ", toWallet.Balance)
-
-		// fmt.Println("fromWallet: ", fromWallet.Address, "переслать: ", req.Amount, "toWallet: ", toWallet.Address)
 
 	}
 }

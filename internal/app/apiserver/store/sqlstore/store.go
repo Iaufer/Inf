@@ -11,7 +11,6 @@ type Store struct {
 	db                    *gorm.DB
 	walletRepository      *WalletRepository
 	transactionRepository *TransactionRepository
-	// userRepository  *UserRepository
 }
 
 func New(db *gorm.DB) *Store {
