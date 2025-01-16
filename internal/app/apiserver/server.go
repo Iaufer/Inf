@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
@@ -38,13 +39,20 @@ func (s *server) configureRouter() {
 func (s *server) handleSend() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
-			From   string `json:"from"`
-			To     string `json:"to"`
-			Amount int    `json:"amount"`
+			From   string  `json:"from" validate:"required"`
+			To     string  `json:"to" validate:"required`
+			Amount float32 `json:"amount" validate:"required,gt=0"`
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		validate := validator.New()
+
+		if err := validate.Struct(req); err != nil {
+			http.Error(w, fmt.Sprintf("validate failed: %v", err), http.StatusBadRequest)
 			return
 		}
 
@@ -68,8 +76,8 @@ func (s *server) handleSend() http.HandlerFunc {
 			}
 
 			if fromWallet.Balance < float64(req.Amount) {
-				fmt.Println("insufficient funds")
-				return err
+				http.Error(w, "insufficient funds", http.StatusBadRequest)
+				return fmt.Errorf("insufficient funds")
 			}
 
 			fromWallet.Balance -= float64(req.Amount)
