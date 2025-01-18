@@ -33,7 +33,7 @@ func main() {
 	fmt.Printf("Start...")
 
 	if err := apiserver.Start(config); err != nil {
-		fmt.Println("Тут ошибка")
+		fmt.Println("Start error")
 
 		log.Fatal(err)
 	}

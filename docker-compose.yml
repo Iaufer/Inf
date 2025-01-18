@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web-app:
+    build: ./
+    command: ./wait-for-postgres.sh db ./apiserver
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=host=db port=5432 user=postgres dbname=payments sslmode=disable password=2505
+      - POSTGRES_PASSWORD=2505
+
+
+  db:
+    restart: always
+    image: postgres:latest
+
+    environment:
+      POSTGRES_PASSWORD: 2505
+    
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

@@ -162,6 +162,11 @@ func (s *server) handleSend() http.HandlerFunc {
 			return
 		}
 
+		if req.From == req.To {
+			http.Error(w, "sent to myself", http.StatusBadRequest)
+			return
+		}
+
 		fmt.Println(req)
 
 		ctx := r.Context()
