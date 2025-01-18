@@ -63,7 +63,7 @@ func migrations(db *gorm.DB) error {
 	})
 
 	for _, file := range files {
-		if file.IsDir() { //skip if not is files
+		if file.IsDir() {
 			continue
 		}
 		filePath := fmt.Sprintf("migrations/%s", file.Name())
@@ -88,7 +88,7 @@ func initializeWallets(db *gorm.DB) error {
 		return fmt.Errorf("failed to check wallets in db: %v", err)
 	}
 
-	if count >= 10 {
+	if count != 0 {
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func initializeWallets(db *gorm.DB) error {
 
 		wallet := &model.Wallet{
 			Address: addr,
-			Balance: 100,
+			Balance: 100.0,
 		}
 
 		fmt.Println(wallet)

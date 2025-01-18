@@ -4,3 +4,7 @@ build:
 
 
 .DEFAULT_GOAL := build
+
+.PHONY: test
+test:
+	go test -v -timeout 30s ./...

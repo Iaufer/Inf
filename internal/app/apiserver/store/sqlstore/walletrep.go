@@ -26,3 +26,7 @@ func (r *WalletRepository) Update(ctx context.Context, wallet *model.Wallet) err
 		Select("balance").
 		Updates(map[string]interface{}{"Balance": wallet.Balance}).Error
 }
+
+func (r *WalletRepository) Create(ctx context.Context, wallet *model.Wallet) error {
+	return r.store.db.WithContext(ctx).Create(wallet).Error
+}

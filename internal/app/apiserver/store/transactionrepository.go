@@ -9,5 +9,6 @@ import (
 
 type TransactionRepository interface {
 	Create(ctx context.Context, tr *model.Transaction) error
+	GetTr(count int, trs *[]*model.Transaction) error
 	DB() *gorm.DB
 }
