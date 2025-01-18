@@ -9,7 +9,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=host=db port=5432 user=postgres dbname=payments sslmode=disable password=2505
+      - DATABASE_URL=host=db port=5432 user=postgres dbname=postgres sslmode=disable password=2505
       - POSTGRES_PASSWORD=2505
 
 
