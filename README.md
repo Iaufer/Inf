@@ -14,12 +14,13 @@
 
 **Тело запроса (JSON):**
 
-``json
+```json
 {
   "from": "e240d825d255af751f5f55af8d9671beabdf2236c0a3b4e2639b3e182d994c88",
   "to": "abcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234yzab5678cdef1234",
   "amount": 3.50
 }
+```
 
 Если средств недостаточно:
     Ответ: insufficient funds
@@ -65,6 +66,7 @@
         "CreatedAt":"2025-01-18T21:20:03.217459Z"
     }]
 }
+```
 
 
 
@@ -82,6 +84,7 @@
     "Address":"9e2af27ff230d7742a93f39fe82cfa211783d6a52c0b857d6343b70d73eb7f4a",
     "Balance":32.66
 }
+```
 
 
 
@@ -91,3 +94,4 @@
 
 ```bash
 start.bat
+```
