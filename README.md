@@ -14,7 +14,7 @@
 
 **Тело запроса (JSON):**
 
-```json
+``json
 {
   "from": "e240d825d255af751f5f55af8d9671beabdf2236c0a3b4e2639b3e182d994c88",
   "to": "abcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234yzab5678cdef1234",
