@@ -13,7 +13,6 @@ type TransactionRepository struct {
 
 func (r *TransactionRepository) Create(ctx context.Context, tr *model.Transaction) error {
 	return r.store.db.WithContext(ctx).Create(tr).Error
-	// return r.store.db.
 }
 
 func (r *TransactionRepository) GetTr(count int, trs *[]*model.Transaction) error {
